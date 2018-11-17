@@ -57,8 +57,31 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :param num_classes: Number of classes to classify
     :return: The Tensor for the last layer of output
     """
-    # TODO: Implement function
-    return None
+    # vgg_layer7
+    layer7_conv_1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same',
+                              kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    output = tf.layers.conv2d_transpose(layer7_conv_1, num_classes, 4, 2, padding='same',
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    # vgg_layer4
+    pool4_out_scaled = tf.multiply(vgg_layer4_out, 0.0001, name='pool4_out_scaled')
+    layer4_conv_1 = tf.layers.conv2d(pool4_out_scaled, num_classes, 1, padding='same',
+                                     kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    output = tf.add(output, layer4_conv_1)
+    
+    # upsample to align with layer 3
+    output = tf.layers.conv2d_transpose(output, num_classes, 4, 2, padding='same',
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    
+    # vgg_layer3
+    pool3_out_scaled = tf.multiply(vgg_layer3_out, 0.0001, name='pool3_out_scaled')
+    layer3_conv_1 = tf.layers.conv2d(pool3_out_scaled, num_classes, 1, padding='same',
+                                     kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    output = tf.add(output, layer3_conv_1)
+    
+    # upsample to original
+    output = tf.layers.conv2d_transpose(output, num_classes, 16, 8, padding='same',
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(0.001))
+    return output
 tests.test_layers(layers)
 
 
