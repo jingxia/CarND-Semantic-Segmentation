@@ -34,7 +34,17 @@ def load_vgg(sess, vgg_path):
     vgg_layer4_out_tensor_name = 'layer4_out:0'
     vgg_layer7_out_tensor_name = 'layer7_out:0'
     
-    return None, None, None, None, None
+    tf.saved_model.loader.load(
+        sess,
+        [vgg_tag],
+        vgg_path)
+    graph = tf.get_default_graph()
+    input_tensor = graph.get_tensor_by_name(vgg_input_tensor_name)
+    keep_prob_tensor = graph.get_tensor_by_name(vgg_keep_prob_tensor_name)
+    vgg_layer3_out_tensor = graph.get_tensor_by_name(vgg_layer3_out_tensor_name)
+    vgg_layer4_out_tensor = graph.get_tensor_by_name(vgg_layer4_out_tensor_name)
+    vgg_layer7_out_tensor = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
+    return input_tensor, keep_prob_tensor, vgg_layer3_out_tensor, vgg_layer4_out_tensor, vgg_layer7_out_tensor
 tests.test_load_vgg(load_vgg, tf)
 
 
@@ -89,7 +99,7 @@ tests.test_train_nn(train_nn)
 def run():
     num_classes = 2
     image_shape = (160, 576)
-    data_dir = './data'
+    data_dir = '/data'
     runs_dir = './runs'
     tests.test_for_kitti_dataset(data_dir)
 
